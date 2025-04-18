@@ -19,7 +19,7 @@ Bionic Reading is a reading technique that guides the eyes through text by boldi
 
 ### From Chrome Web Store (Recommended)
 
-1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (link to be added after publication).
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/bionic-reading/olmgnacpmdpjdjgemimpmoepbacfheaf)
 2. Click "Add to Chrome".
 3. Confirm by clicking "Add Extension".
 
