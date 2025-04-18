@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bionic Reading</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Bionic Reading</h1>
+    </header>
+    
+    <div class="content">
+      <p>Enhance your reading by highlighting the first few letters of each word.</p>
+      
+      <div class="toggle-section">
+        <button id="toggle-button" class="toggle-button">Toggle Bionic Reading</button>
+        <p class="shortcut-info">Keyboard shortcut: <span class="shortcut">Ctrl+Shift+E</span> (Windows/Linux) or <span class="shortcut">Command+Shift+E</span> (Mac)</p>
+        <div id="status-indicator" class="status-indicator">Status: Checking...</div>
+      </div>
+      
+      <div id="error-message" class="error-message"></div>
+      
+      <div class="example-section">
+        <h2>Example:</h2>
+        <p class="normal-text">This is what text looks like without Bionic Reading.</p>
+        <p class="bionic-text">
+          <strong>Th</strong>is <strong>i</strong>s <strong>wh</strong>at <strong>te</strong>xt <strong>loo</strong>ks <strong>li</strong>ke <strong>wi</strong>th <strong>Bio</strong>nic <strong>Rea</strong>ding.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 

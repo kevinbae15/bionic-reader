@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Bionic Reading",
+  "description": "Automatically apply Bionic Reading to any website.",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-bionic-reading": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "Toggle Bionic Reading"
+    }
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/inactive-icon-16.png",
+      "48": "icons/inactive-icon-48.png",
+      "128": "icons/inactive-icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/inactive-icon-16.png",
+    "48": "icons/inactive-icon-48.png",
+    "128": "icons/inactive-icon-128.png"
+  }
+} 
