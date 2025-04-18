@@ -1,10 +1,13 @@
-# Bionic Reading Chrome Extension
 
 A Chrome extension that automatically applies the Bionic Reading technique to any website, enhancing readability and comprehension by bolding the first few letters of each word.
 
 ## What is Bionic Reading?
 
 Bionic Reading is a reading technique that guides the eyes through text by bolding the first few letters of each word. This creates "fixation points" that help the brain complete the word, allowing for faster reading and better comprehension.
+
+![image](https://github.com/user-attachments/assets/5cd75d66-f8bb-4b0b-8df3-e6ae5cfbfef2)
+![image](https://github.com/user-attachments/assets/f0b4dbce-d283-4e78-af2d-e87340cfc082)
+
 
 ## Features
 
