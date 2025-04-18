@@ -1,4 +1,3 @@
-
 A Chrome extension that automatically applies the Bionic Reading technique to any website, enhancing readability and comprehension by bolding the first few letters of each word.
 
 ## What is Bionic Reading?
@@ -60,14 +59,10 @@ This extension:
 - Does not send any information to external servers.
 - Operates entirely within your browser.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
-- Inspired by the Bionic Reading® method developed by Renato Casutt. 
+- Inspired by the Bionic Reading® method developed by Renato Casutt.
