@@ -479,9 +479,14 @@
   // Effective-active computation + transitions
   // =========================================================================
 
-  function setActive(next, persist) {
+  // `force` makes the call reconcile the DOM even when the cached `active` flag
+  // already matches — used by explicit user toggles so turning off ALWAYS
+  // strips the effect (and on always applies it) even if state had drifted out
+  // of sync with the page. Storage-driven reactions omit force to avoid
+  // redundant re-walks.
+  function setActive(next, persist, force) {
     next = !!next;
-    if (next === active) return; // no state change; nothing to do
+    if (next === active && !force) return; // no change and no forced reconcile
     active = next;
     if (active) {
       apply();
@@ -667,13 +672,13 @@
 
       case 'BR_TOGGLE': {
         const next = !active;
-        setActive(next, true); // persistOverride() decides whether to memorize
+        setActive(next, true, true); // force: always reconcile the DOM
         sendResponse({ active });
         return true;
       }
 
       case 'BR_SET_ACTIVE': {
-        setActive(!!message.active, true);
+        setActive(!!message.active, true, true);
         sendResponse({ active });
         return true;
       }

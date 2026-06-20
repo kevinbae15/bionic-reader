@@ -52,7 +52,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 13px 18px;
   border-bottom: 1px solid var(--paper-3);
 }
 .pu-mark {
@@ -145,12 +145,12 @@ body {
 }
 
 /* ---------- Hero toggle card ---------- */
-.pu-hero { padding: 18px; }
+.pu-hero { padding: 12px 18px; }
 .toggle-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px;
+  padding: 13px;
   border: 1px solid var(--paper-3);
   border-radius: 14px;
   background: var(--paper-2);
@@ -200,7 +200,7 @@ body {
   padding: 0 18px 4px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 .ctl .lab {
   display: flex;
@@ -248,12 +248,12 @@ body {
 /* ---------- Live preview ---------- */
 .pu-example {
   margin-top: 0;
-  padding: 14px;
+  padding: 11px 12px;
   border-radius: 13px;
   background: var(--ink);
   color: #E8E9EE;
-  font-size: 13.5px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.55;
 }
 .pu-example .cap {
   font-family: var(--font-mono);
@@ -262,7 +262,7 @@ body {
   text-transform: uppercase;
   color: var(--amber);
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .pu-example b { font-weight: 800; color: #fff; }
 .pu-example b.mark {
@@ -381,7 +381,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 18px 18px;
+  padding: 11px 18px 13px;
   color: var(--ink-muted);
   font-size: 12px;
 }

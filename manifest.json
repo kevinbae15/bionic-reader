@@ -2,11 +2,10 @@
   "manifest_version": 3,
   "name": "Bionic Reading",
   "description": "Read faster. Bolds the start of each word to guide your eyes — adjustable intensity, optional highlight, per-site memory. 100% private.",
-  "version": "2.0",
+  "version": "2.1",
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs",
     "storage"
   ],
   "host_permissions": [
