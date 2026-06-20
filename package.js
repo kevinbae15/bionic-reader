@@ -1,118 +1,103 @@
-// A simple script to package the extension for distribution
+// Packages the Bionic Reading extension into a clean distributable zip.
+//
+// Includes the runtime files the browser needs, plus README and LICENSE;
+// excludes dev-only files (icon generator, specs, plans, tests, this script,
+// scratch files).
+// Node-only, no dependencies. Requires the `zip` command (preinstalled on
+// macOS/Linux). Run with: node package.js
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Files and directories to include in the package
-const filesToInclude = [
+const root = __dirname;
+const stageDir = path.join(root, 'dist');
+const packageName = 'bionic-reading-v2';
+const zipPath = path.join(root, `${packageName}.zip`);
+
+// Individual runtime files to include (relative to repo root).
+const includeFiles = [
   'manifest.json',
-  'background.js',
   'content.js',
+  'background.js',
   'popup.html',
   'popup.js',
   'styles.css',
-  'icons/*.png', // Only include PNG icons
   'LICENSE',
-  'README.md'
+  'README.md',
 ];
 
-// Files and directories to exclude
-const filesToExclude = [
-  'icons/*.svg',
-  'icons/*.js',
-  'convert_icons.html',
-  'package.js',
-  'todo.md',
-  'prompt-plan.md',
-  'spec.md',
-  '.cursor',
-  '.git'
+// Directories whose matching assets are included. Only PNGs — Chrome loads
+// raster icons at runtime; the canonical SVGs are repo/source assets.
+const includeDirs = [
+  { dir: 'icons', extensions: ['.png'] },
 ];
 
-// Output directory
-const outputDir = 'dist';
-const packageName = 'bionic-reading-extension';
-
-// Create output directory if it doesn't exist
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir);
+function rmrf(target) {
+  fs.rmSync(target, { recursive: true, force: true });
 }
 
-// Function to copy files to the output directory
-function copyFiles() {
-  console.log('Copying files to output directory...');
-  
-  // Create icons directory in output
-  if (!fs.existsSync(path.join(outputDir, 'icons'))) {
-    fs.mkdirSync(path.join(outputDir, 'icons'));
-  }
-  
-  // Copy each file
-  filesToInclude.forEach(filePattern => {
-    if (filePattern.includes('*')) {
-      // Handle glob patterns
-      const dirPath = filePattern.split('/')[0];
-      const extension = filePattern.split('*.')[1];
-      
-      // Read directory and filter by extension
-      const files = fs.readdirSync(dirPath)
-        .filter(file => file.endsWith(`.${extension}`));
-      
-      // Copy each matching file
-      files.forEach(file => {
-        const sourcePath = path.join(dirPath, file);
-        const destPath = path.join(outputDir, dirPath, file);
-        fs.copyFileSync(sourcePath, destPath);
-        console.log(`Copied ${sourcePath} to ${destPath}`);
-      });
-    } else {
-      // Copy individual file
-      const destPath = path.join(outputDir, filePattern);
-      fs.copyFileSync(filePattern, destPath);
-      console.log(`Copied ${filePattern} to ${destPath}`);
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function copyToStage(relPath) {
+  const src = path.join(root, relPath);
+  const dest = path.join(stageDir, relPath);
+  ensureDir(path.dirname(dest));
+  fs.copyFileSync(src, dest);
+  console.log(`  + ${relPath}`);
+}
+
+function stageFiles() {
+  console.log('Staging runtime files...');
+
+  for (const file of includeFiles) {
+    if (!fs.existsSync(path.join(root, file))) {
+      throw new Error(`Required file missing: ${file}`);
     }
-  });
-}
+    copyToStage(file);
+  }
 
-// Function to create a ZIP archive
-function createZipArchive() {
-  console.log('Creating ZIP archive...');
-  
-  try {
-    // Check if zip command is available
-    execSync('which zip');
-    
-    // Create ZIP archive
-    const zipCommand = `cd ${outputDir} && zip -r ../${packageName}.zip .`;
-    execSync(zipCommand);
-    console.log(`Created ${packageName}.zip`);
-  } catch (error) {
-    console.error('Error creating ZIP archive:', error.message);
-    console.log('Please manually zip the contents of the dist directory.');
+  for (const { dir, extensions } of includeDirs) {
+    const dirPath = path.join(root, dir);
+    if (!fs.existsSync(dirPath)) {
+      throw new Error(`Required directory missing: ${dir}`);
+    }
+    const matches = fs
+      .readdirSync(dirPath)
+      // Ship only the icons the manifest references; -256 is a store-listing tile.
+      .filter((file) => extensions.includes(path.extname(file).toLowerCase()) && !/-256\.png$/i.test(file));
+    if (matches.length === 0) {
+      throw new Error(`No matching assets in ${dir} (expected ${extensions.join(', ')})`);
+    }
+    for (const file of matches) {
+      copyToStage(path.join(dir, file));
+    }
   }
 }
 
-// Main function
+function createZip() {
+  console.log('Creating zip archive...');
+  // Zip the staged contents (not the dist folder itself) so the archive
+  // unpacks straight to the extension root.
+  execSync(`cd "${stageDir}" && zip -r -q "${zipPath}" .`);
+  console.log(`Created ${path.basename(zipPath)}`);
+}
+
 function packageExtension() {
-  console.log('Packaging Bionic Reading Extension...');
-  
-  // Check if PNG icons exist
-  const pngIconsExist = fs.existsSync('icons/inactive-icon-16.png');
-  if (!pngIconsExist) {
-    console.warn('Warning: PNG icons not found. Please generate them first using one of the icon scripts.');
-    console.warn('Continuing with packaging, but the extension may not work correctly without icons.');
-  }
-  
-  // Copy files to output directory
-  copyFiles();
-  
-  // Create ZIP archive
-  createZipArchive();
-  
-  console.log('Packaging complete!');
-  console.log(`Output: ${packageName}.zip`);
-  console.log('You can now upload this ZIP file to the Chrome Web Store Developer Dashboard.');
+  console.log('Packaging Bionic Reading extension...');
+
+  // Start clean so stale files never leak into the archive.
+  rmrf(stageDir);
+  rmrf(zipPath);
+  ensureDir(stageDir);
+
+  stageFiles();
+  createZip();
+
+  console.log('Done.');
+  console.log(`Output: ${path.basename(zipPath)}`);
+  console.log('Upload this zip to the Chrome Web Store Developer Dashboard.');
 }
 
-// Run the packaging process
-packageExtension(); 
+packageExtension();

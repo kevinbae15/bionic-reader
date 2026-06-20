@@ -1,37 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=360, initial-scale=1">
   <title>Bionic Reading</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Bionic Reading</h1>
-    </header>
-    
-    <div class="content">
-      <p>Enhance your reading by highlighting the first few letters of each word.</p>
-      
-      <div class="toggle-section">
-        <button id="toggle-button" class="toggle-button">Toggle Bionic Reading</button>
-        <p class="shortcut-info">Keyboard shortcut: <span class="shortcut">Ctrl+Shift+E</span> (Windows/Linux) or <span class="shortcut">Command+Shift+E</span> (Mac)</p>
-        <div id="status-indicator" class="status-indicator">Status: Checking...</div>
+  <div class="popup" id="popup" data-on="false" data-ready="false">
+
+    <!-- Header -->
+    <div class="pu-top">
+      <span class="pu-mark" id="puMark" aria-hidden="true"></span>
+      <div class="pu-name">
+        Bionic Reading
+        <span id="puSite">Checking this page…</span>
       </div>
-      
-      <div id="error-message" class="error-message"></div>
-      
-      <div class="example-section">
-        <h2>Example:</h2>
-        <p class="normal-text">This is what text looks like without Bionic Reading.</p>
-        <p class="bionic-text">
-          <strong>Th</strong>is <strong>i</strong>s <strong>wh</strong>at <strong>te</strong>xt <strong>loo</strong>ks <strong>li</strong>ke <strong>wi</strong>th <strong>Bio</strong>nic <strong>Rea</strong>ding.
-        </p>
+      <button class="pu-help" id="puHelp" type="button" aria-expanded="false"
+              aria-controls="puAbout" aria-label="About Bionic Reading"
+              title="Bionic Reading bolds the start of each word so your eye lands faster. The bold prefix is always on; the amber highlight is optional.">?</button>
+    </div>
+
+    <!-- About / help blurb (collapsed by default) -->
+    <div class="pu-about" id="puAbout" hidden>
+      Bionic Reading bolds the <b>start of each word</b> so your eye lands on a
+      fixation point and your brain fills in the rest. The bold prefix is always
+      on; the amber highlight behind it is an optional preference.
+    </div>
+
+    <!-- Restricted-page state (shown when the content script can't run) -->
+    <div class="pu-blocked" id="puBlocked" hidden>
+      <span class="pu-blocked-mark" id="puBlockedMark" aria-hidden="true"></span>
+      <div class="pu-blocked-title">Bionic Reading can't run on this page</div>
+      <div class="pu-blocked-sub" id="puBlockedSub">Open a regular website and try again.</div>
+    </div>
+
+    <!-- Active UI -->
+    <div class="pu-live" id="puLive">
+      <div class="pu-hero">
+        <div class="toggle-card">
+          <div class="tt">
+            <div class="h">Bionic Reading</div>
+            <div class="s" id="puState">Off — tap to enable</div>
+          </div>
+          <button class="switch" id="puSwitch" type="button"
+                  aria-label="Toggle Bionic Reading for this site" aria-pressed="false"></button>
+        </div>
+      </div>
+
+      <div class="pu-controls" id="puControls">
+        <div class="ctl">
+          <div class="lab"><span class="name">Intensity</span><span class="val" id="puIntVal">Medium</span></div>
+          <div class="seg" id="puSeg" role="group" aria-label="Intensity">
+            <button type="button" data-r="0.33" aria-pressed="false">Light</button>
+            <button type="button" data-r="0.45" aria-pressed="true">Medium</button>
+            <button type="button" data-r="0.6" aria-pressed="false">Strong</button>
+          </div>
+        </div>
+
+        <div class="rowctl">
+          <div class="tt">
+            <div class="h">Highlight prefix</div>
+            <div class="s">Amber marker behind the bold (bold stays on either way)</div>
+          </div>
+          <button class="switch sm" id="puHl" type="button"
+                  aria-label="Highlight prefix" aria-pressed="false"></button>
+        </div>
+
+        <div class="rowctl">
+          <div class="tt">
+            <div class="h">Auto-apply on every site</div>
+            <div class="s">Turn on everywhere automatically</div>
+          </div>
+          <button class="switch sm" id="puAuto" type="button"
+                  aria-label="Auto-apply everywhere" aria-pressed="false"></button>
+        </div>
+
+        <div class="rowctl">
+          <div class="tt">
+            <div class="h">Remember sites I turn on</div>
+            <div class="s">Save a site to your list when you switch it on</div>
+          </div>
+          <button class="switch sm" id="puRemember" type="button"
+                  aria-label="Remember sites I turn on" aria-pressed="true"></button>
+        </div>
+
+        <div class="pu-example">
+          <span class="cap">Preview</span>
+          <span id="puExample"></span>
+        </div>
+      </div>
+
+      <div class="pu-sites">
+        <button class="pu-sites-toggle" id="puSitesToggle" type="button"
+                aria-expanded="false" aria-controls="puSitesPanel">
+          <span>Enabled sites</span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <div class="pu-sites-panel" id="puSitesPanel" hidden></div>
+      </div>
+
+      <div class="pu-foot">
+        <span class="dot"></span>
+        <span id="puFootStatus">Ready</span>
+        <span class="foot-kbd" id="puKbdWrap"></span>
       </div>
     </div>
+
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
-</html> 
+</html>

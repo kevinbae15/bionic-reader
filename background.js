@@ -1,121 +1,145 @@
-// Debug mode for troubleshooting
-const DEBUG = true;
+// Bionic Reading — MV3 service worker.
+//
+// This worker is event-driven and may be torn down at any time, so it keeps no
+// long-lived state. chrome.storage is the source of truth for on/off state;
+// each tab's content script applies it and reports changes, and this worker
+// only mirrors the per-tab state onto the toolbar icon, recomputing from
+// messages/queries each time it wakes.
 
-// Function to log debug messages
-function debugLog(...args) {
-  if (DEBUG) {
-    console.log('[Bionic Reading Background]', ...args);
+const DEBUG = false;
+function log(...args) {
+  if (DEBUG) console.log('[Bionic Reading SW]', ...args);
+}
+
+const ICONS = {
+  active: {
+    16: 'icons/active-icon-16.png',
+    32: 'icons/active-icon-32.png',
+    48: 'icons/active-icon-48.png',
+    128: 'icons/active-icon-128.png'
+  },
+  inactive: {
+    16: 'icons/inactive-icon-16.png',
+    32: 'icons/inactive-icon-32.png',
+    48: 'icons/inactive-icon-48.png',
+    128: 'icons/inactive-icon-128.png'
+  }
+};
+
+// Set the toolbar icon for a single tab. The tab may have closed between the
+// triggering event and this call, so swallow any failure.
+function setIconForTab(tabId, active) {
+  if (typeof tabId !== 'number') return;
+  try {
+    chrome.action.setIcon({
+      tabId,
+      path: active ? ICONS.active : ICONS.inactive
+    });
+  } catch (e) {
+    log('setIconForTab failed', tabId, e);
   }
 }
 
-// Listen for the keyboard shortcut
-chrome.commands.onCommand.addListener(function(command) {
-  if (command === "toggle-bionic-reading") {
-    // Execute script in the active tab to toggle Bionic Reading
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      if (!tabs || tabs.length === 0) {
-        debugLog('No active tab found');
-        return;
-      }
-      
-      debugLog('Sending toggle message to tab:', tabs[0].id);
-      
-      chrome.tabs.sendMessage(tabs[0].id, {action: "toggle"}, function(response) {
-        // Check if there was an error (content script might not be loaded)
-        if (chrome.runtime.lastError) {
-          debugLog('Error sending message:', chrome.runtime.lastError.message);
-          
-          // Try to inject the content script
-          injectContentScript(tabs[0].id, () => {
-            // Try again after injection
-            setTimeout(() => {
-              chrome.tabs.sendMessage(tabs[0].id, {action: "toggle"}, function(response) {
-                if (response && response.active !== undefined) {
-                  updateIcon(response.active);
-                }
-              });
-            }, 100);
-          });
-          return;
-        }
-        
-        // Update the icon based on the active state
-        if (response && response.active !== undefined) {
-          debugLog('Received response:', response);
-          updateIcon(response.active);
-        }
-      });
-    });
-  }
-});
-
-// Function to inject the content script
-function injectContentScript(tabId, callback) {
-  debugLog('Injecting content script into tab:', tabId);
-  
-  chrome.scripting.executeScript({
-    target: {tabId: tabId},
-    files: ['content.js']
-  }).then(() => {
-    debugLog('Content script injected successfully');
-    if (callback) callback();
-  }).catch(error => {
-    debugLog('Error injecting content script:', error);
+// Best-effort: ask a tab for its current state and mirror it to the icon.
+// Never injects — a missing content script just means the icon stays inactive.
+function refreshIconFromTab(tabId) {
+  if (typeof tabId !== 'number') return;
+  chrome.tabs.sendMessage(tabId, { type: 'BR_GET_STATE' }, (response) => {
+    if (chrome.runtime.lastError) {
+      // No content script alive on this tab; leave the default (inactive) icon.
+      log('BR_GET_STATE no reply', tabId, chrome.runtime.lastError.message);
+      return;
+    }
+    if (response && typeof response.active === 'boolean') {
+      setIconForTab(tabId, response.active);
+    }
   });
 }
 
-// Listen for messages from content script to update the icon
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  debugLog('Received message:', message, 'from:', sender);
-  
-  if (message.action === "updateIcon") {
-    updateIcon(message.active);
-  } else if (message.action === "contentScriptReady") {
-    debugLog('Content script is ready on:', message.url);
-  } else if (message.action === "error") {
-    debugLog('Error from content script:', message.message);
-  }
-  return true;
-});
-
-// Function to update the extension icon based on active state
-function updateIcon(active) {
-  debugLog('Updating icon to:', active ? 'active' : 'inactive');
-  
-  const iconPath = active ? 
-    {
-      "16": "icons/active-icon-16.png",
-      "48": "icons/active-icon-48.png",
-      "128": "icons/active-icon-128.png"
-    } : 
-    {
-      "16": "icons/inactive-icon-16.png",
-      "48": "icons/inactive-icon-48.png",
-      "128": "icons/inactive-icon-128.png"
-    };
-  
-  chrome.action.setIcon({path: iconPath});
+function isHttpUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url);
 }
 
-// Listen for tab updates to ensure content script is loaded
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // Only act when the page is fully loaded
-  if (changeInfo.status === 'complete' && tab.url && tab.url.startsWith('http')) {
-    debugLog('Tab updated:', tabId, 'URL:', tab.url);
-    
-    // Check if content script is loaded by sending a message
-    chrome.tabs.sendMessage(tabId, {action: "debug"}, function(response) {
-      if (chrome.runtime.lastError) {
-        debugLog('Content script not loaded in tab:', tabId, chrome.runtime.lastError.message);
-        
-        // Inject content script if not loaded
-        injectContentScript(tabId);
-      } else {
-        debugLog('Content script already loaded in tab:', tabId);
-      }
-    });
+// --- Keyboard command: toggle Bionic Reading on the active tab -------------
+
+function injectThenToggle(tabId) {
+  // The only place we inject — a guarded fallback for pages that predate the
+  // extension. executeScript can both reject (restricted tab) and, for some
+  // invalid targets, throw synchronously, so guard both.
+  try {
+    chrome.scripting
+      .executeScript({ target: { tabId }, files: ['content.js'] })
+      .then(() => {
+        chrome.tabs.sendMessage(tabId, { type: 'BR_TOGGLE' }, (retry) => {
+          if (chrome.runtime.lastError) {
+            log('toggle: retry failed', chrome.runtime.lastError.message);
+            return;
+          }
+          if (retry && typeof retry.active === 'boolean') setIconForTab(tabId, retry.active);
+        });
+      })
+      .catch((err) => log('toggle: injection failed (restricted tab)', err));
+  } catch (err) {
+    log('toggle: executeScript threw', err);
   }
+}
+
+function handleToggleCommand(command) {
+  if (command !== 'toggle-bionic-reading') return;
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (chrome.runtime.lastError) return;
+    const tab = tabs && tabs[0];
+    if (!tab || typeof tab.id !== 'number') {
+      log('toggle: no active tab');
+      return;
+    }
+    const tabId = tab.id;
+    chrome.tabs.sendMessage(tabId, { type: 'BR_TOGGLE' }, (response) => {
+      if (chrome.runtime.lastError) {
+        log('toggle: no content script, injecting', chrome.runtime.lastError.message);
+        injectThenToggle(tabId);
+        return;
+      }
+      if (response && typeof response.active === 'boolean') setIconForTab(tabId, response.active);
+    });
+  });
+}
+
+if (chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener((command) => {
+    try {
+      handleToggleCommand(command);
+    } catch (err) {
+      log('command handler error', err);
+    }
+  });
+}
+
+// --- Messages from content scripts -----------------------------------------
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Only trust messages from our own content scripts.
+  if (!sender || sender.id !== chrome.runtime.id) return false;
+  if (message && message.type === 'BR_STATE_CHANGED') {
+    const tabId = sender && sender.tab && sender.tab.id;
+    setIconForTab(tabId, !!message.active);
+    sendResponse({ ok: true });
+    return false;
+  }
+  return false;
 });
 
-// Log that the background script has loaded
-debugLog('Background script loaded and ready'); 
+// --- Keep the icon in sync as the user moves around -------------------------
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  refreshIconFromTab(tabId);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== 'complete') return;
+  if (!isHttpUrl(tab && tab.url)) return;
+  // Best-effort only — do NOT auto-inject here (that was the double-injection bug).
+  refreshIconFromTab(tabId);
+});
+
+log('service worker loaded');

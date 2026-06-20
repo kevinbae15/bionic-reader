@@ -1,68 +1,77 @@
-A Chrome extension that automatically applies the Bionic Reading technique to any website, enhancing readability and comprehension by bolding the first few letters of each word.
+# Bionic Reading
 
-## What is Bionic Reading?
-
-Bionic Reading is a reading technique that guides the eyes through text by bolding the first few letters of each word. This creates "fixation points" that help the brain complete the word, allowing for faster reading and better comprehension.
+Read faster on any website. Bionic Reading bolds the leading part of each word to create "fixation points" that guide your eyes and let your brain fill in the rest.
 
 ![image](https://github.com/user-attachments/assets/5cd75d66-f8bb-4b0b-8df3-e6ae5cfbfef2)
 ![image](https://github.com/user-attachments/assets/f0b4dbce-d283-4e78-af2d-e87340cfc082)
 
+## What is Bionic Reading?
+
+Bionic Reading is a reading technique that bolds the first few letters of each word. Those bolded heads act as anchors — your eyes lock onto them and your brain completes the word automatically, so you move through text with less effort and better focus.
 
 ## Features
 
-- **One-Click Toggle**: Enable or disable Bionic Reading with a single click.
-- **Keyboard Shortcut**: Toggle with `Ctrl+Shift+E` (Windows/Linux) or `Command+Shift+E` (Mac).
-- **Automatic Content Detection**: Automatically identifies and processes main content areas on websites.
-- **Dynamic Content Support**: Works with infinite scrolling and dynamically loaded content.
-- **Preservation of Page Structure**: Maintains the original HTML structure and styling of the page.
-- **Visual Feedback**: Clear visual indication when Bionic Reading is active.
+- **Master toggle** — turn the effect on or off for the current site with one click.
+- **Per-site memory** — your on/off choice is remembered per hostname, so each site stays the way you left it.
+- **Intensity** — choose Light, Medium, or Strong to control how much of each word is bolded. Medium is the default.
+- **Highlight prefix** — optionally add a subtle amber highlight behind each bold head. The bold prefix is always on; the highlight is the only optional part.
+- **Auto-apply on every site** — flip this on to have Bionic Reading activate automatically on every page you visit (per-site choices still win).
+- **Works across sites** — runs on any page via a single content script.
+- **Dynamic-content support** — newly loaded text (infinite scroll, single-page apps, AJAX) is processed as it appears.
+- **Faithful to the page** — preserves whitespace, links, and markup, and restores the page exactly when you turn it off.
+- **Private by design** — 100% local. No data collection, no network requests, nothing leaves your browser.
 
-## Installation
+## Install
 
-### From Chrome Web Store (Recommended)
+### From the Chrome Web Store (recommended)
 
-1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/bionic-reading/olmgnacpmdpjdjgemimpmoepbacfheaf)
-2. Click "Add to Chrome".
-3. Confirm by clicking "Add Extension".
+1. Open the [Chrome Web Store listing](https://chromewebstore.google.com/detail/bionic-reading/olmgnacpmdpjdjgemimpmoepbacfheaf).
+2. Click **Add to Chrome**.
+3. Confirm with **Add extension**.
 
-### Manual Installation (Development)
+### Load unpacked (development)
 
-1. Download or clone this repository.
-2. Open Chrome and navigate to `chrome://extensions/`.
-3. Enable "Developer mode" in the top-right corner.
-4. Click "Load unpacked" and select the extension directory.
+1. Clone or download this repository.
+2. Open `chrome://extensions/`.
+3. Enable **Developer mode** (top-right).
+4. Click **Load unpacked** and select the repository's root folder (the one containing `manifest.json`).
 
 ## Usage
 
-1. Click the extension icon in your browser toolbar to open the popup.
-2. Click the "Toggle Bionic Reading" button to enable or disable the effect.
-3. Alternatively, use the keyboard shortcut `Ctrl+Shift+E` (Windows/Linux) or `Command+Shift+E` (Mac).
+Click the extension icon to open the popup, then:
 
-## How It Works
+- Use the **master toggle** to switch Bionic Reading on or off for the current site.
+- Pick an **Intensity** (Light / Medium / Strong).
+- Turn the **Highlight prefix** on or off.
+- Enable **Auto-apply on every site** if you want it active everywhere by default.
 
-The extension:
-1. Identifies the main content areas of a webpage.
-2. Processes text nodes to bold the first few letters of each word.
-3. Uses a MutationObserver to automatically apply the effect to dynamically loaded content.
-4. Preserves the original content to restore it when the effect is disabled.
+You can also toggle the current site from the keyboard with `Ctrl+Shift+E` (Windows/Linux) or `Command+Shift+E` (Mac).
 
-## Limitations
+## How it works
 
-- May not work perfectly on all websites, especially those with complex or unusual structures.
-- Does not modify text in images, videos, or other non-HTML content.
-- Performance may vary on very large pages or with certain complex websites.
+- **Smart scope** — only readable prose is transformed. Navigation, headers, footers, asides, forms, buttons, inputs, code, media, and editable regions are skipped.
+- **DOM-safe transform** — each word's prefix is wrapped in real DOM nodes (never via `innerHTML`), so whitespace, inline links, and existing markup stay intact and the page restores faithfully.
+- **Live settings** — intensity and highlight are stored in `chrome.storage`; changes apply immediately to active pages without a reload.
+- **Dynamic content** — a `MutationObserver` watches the page and processes text that loads after the initial render.
+
+## Known limitations
+
+Bionic Reading rewrites page text in place, which a few situations don't love:
+
+- **Heavy single-page apps.** Some apps (built on frameworks that re-render aggressively) may re-draw a region and briefly undo the effect, or flicker. Toggling off and on re-applies it. The extension is built to fail safe — it won't crash the page.
+- **Web components / shadow DOM.** Text inside open shadow roots is processed on load; content that a component renders into its shadow root *after* load may not be picked up.
+- **Iframes and preformatted text.** Embedded frames aren't processed, and code blocks / CSS-preformatted regions are skipped on purpose so alignment stays intact.
+
+Turning the effect off restores the original text. If a page ever looks off, toggle off (or reload).
 
 ## Privacy
 
-This extension:
-- Does not collect any user data.
-- Does not send any information to external servers.
-- Operates entirely within your browser.
+This extension runs entirely in your browser. It does not collect any data, does not make any network requests, and never sends your reading or browsing anywhere.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT — see the [LICENSE](LICENSE) file.
 
 ## Acknowledgments
 
-- Inspired by the Bionic Reading® method developed by Renato Casutt.
+Inspired by the Bionic Reading® method developed by Renato Casutt.

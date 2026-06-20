@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Bionic Reading",
-  "description": "Automatically apply Bionic Reading to any website.",
-  "version": "1.0",
+  "description": "Read faster. Bolds the start of each word to guide your eyes — adjustable intensity, optional highlight, per-site memory. 100% private.",
+  "version": "2.0",
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -18,7 +19,8 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "commands": {
@@ -34,13 +36,15 @@
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/inactive-icon-16.png",
+      "32": "icons/inactive-icon-32.png",
       "48": "icons/inactive-icon-48.png",
       "128": "icons/inactive-icon-128.png"
     }
   },
   "icons": {
     "16": "icons/inactive-icon-16.png",
+    "32": "icons/inactive-icon-32.png",
     "48": "icons/inactive-icon-48.png",
     "128": "icons/inactive-icon-128.png"
   }
-} 
+}

@@ -1,144 +1,35 @@
-# Bionic Reading Extension - Testing Guide
+# Bionic Reading — Manual Test Checklist
 
-This document provides a structured approach to testing the Bionic Reading Chrome Extension before deployment.
+A practical pass to run before shipping. Load the extension unpacked (see `INSTALLATION.md`) and work through the cases below.
 
-## Prerequisites
+## Suggested test pages
 
-- Chrome browser (latest version recommended)
-- Extension files loaded as an unpacked extension
+- **Article / prose**: a news article (BBC, NYT) or a Wikipedia entry.
+- **Inline markup + code**: an MDN page or a GitHub README (mix of links, inline `code`, and code blocks).
+- **Infinite scroll**: Reddit, an X/Twitter feed, or any endless-scroll listing.
+- **Restricted page**: `chrome://extensions/`, the Chrome Web Store, or a `view-source:` URL.
 
-## Loading the Extension for Testing
+## Core controls
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" in the top-right corner
-3. Click "Load unpacked" and select the extension directory
-4. Verify the extension icon appears in your browser toolbar
+- [ ] **Toggle on/off** — open the popup on an article, flip the master toggle on; prose gets bold heads. Flip it off; the page returns to normal.
+- [ ] **Per-site memory persists** — turn it on for a site, reload the page (and revisit later); it comes back on automatically. Turn it off, reload; it stays off.
+- [ ] **Intensity changes live** — with the effect on, switch Light → Medium → Strong; the amount of each word bolded changes immediately, no reload needed.
+- [ ] **Highlight prefix on/off** — toggle the highlight off; the amber background disappears but the bold prefix remains. Toggle it back on; the amber highlight returns. The bold is never removed by this control.
+- [ ] **Auto-apply on a fresh site** — enable "Auto-apply on every site", then visit a site you have never toggled; the effect turns on automatically. A per-site off choice still overrides auto-apply on that site.
+- [ ] **Keyboard shortcut** — press `Ctrl+Shift+E` / `Command+Shift+E` on a normal page; it toggles the current site the same as the master toggle, and the toolbar icon switches between active (amber) and inactive (muted).
 
-## Functional Testing
+## Engine correctness
 
-### Basic Functionality
+- [ ] **Dynamic content** — on an infinite-scroll page, enable the effect, then scroll to load more; newly loaded text is processed automatically.
+- [ ] **Whitespace & markup preserved** — on a page with inline links and code, enable the effect; spacing is unchanged, links remain clickable and styled, and inline/block code is left untouched (not bolded).
+- [ ] **Smart scope** — navigation, headers, footers, sidebars, form fields, buttons, and media captions are not transformed; only readable body text is.
+- [ ] **Faithful restore** — toggle off (or reload with it off); the page text matches the original exactly, with no leftover wrappers, stray spans, or altered spacing.
 
-- [ ] **Icon Display Test**
-  - Verify the extension icon appears in the toolbar
-  - Verify the icon is the inactive version (blue with lowercase 'b')
+## Restricted pages
 
-- [ ] **Popup Display Test**
-  - Click the extension icon
-  - Verify the popup opens
-  - Verify the toggle button displays "Enable Bionic Reading"
-  - Verify the example section shows both normal and bionic text
+- [ ] **Calm "can't run here" state** — open the popup on a restricted page (`chrome://`, Chrome Web Store, `view-source:`); the popup shows a calm "Bionic Reading can't run on this page" message rather than an error or a dead toggle.
 
-- [ ] **Keyboard Shortcut Test**
-  - Navigate to any content-rich website (e.g., a news article)
-  - Press `Ctrl+Shift+E` (Windows/Linux) or `Command+Shift+E` (Mac)
-  - Verify the Bionic Reading effect is applied to the page
-  - Verify the extension icon changes to the active version (red with uppercase 'B')
-  - Press the shortcut again
-  - Verify the Bionic Reading effect is removed
-  - Verify the extension icon changes back to the inactive version
+## Quick regression sweep
 
-- [ ] **Toggle Button Test**
-  - Click the extension icon to open the popup
-  - Click the "Enable Bionic Reading" button
-  - Verify the Bionic Reading effect is applied to the page
-  - Verify the button text changes to "Disable Bionic Reading"
-  - Verify the button style changes (blue to red)
-  - Click the button again
-  - Verify the Bionic Reading effect is removed
-  - Verify the button text changes back to "Enable Bionic Reading"
-
-### Content Detection
-
-- [ ] **Article Content Test**
-  - Navigate to a news article (e.g., CNN, BBC, Medium)
-  - Enable Bionic Reading
-  - Verify the effect is applied to the main article content
-  - Verify the effect is NOT applied to navigation, buttons, or other UI elements
-
-- [ ] **Blog Content Test**
-  - Navigate to a blog post
-  - Enable Bionic Reading
-  - Verify the effect is applied to the blog content
-  - Verify paragraphs, headings, and lists are properly processed
-
-- [ ] **Documentation Content Test**
-  - Navigate to documentation pages (e.g., MDN, GitHub README)
-  - Enable Bionic Reading
-  - Verify the effect is applied to the documentation content
-  - Verify code blocks and technical content are properly handled
-
-### Dynamic Content
-
-- [ ] **Infinite Scroll Test**
-  - Navigate to a site with infinite scrolling (e.g., Twitter, Reddit)
-  - Enable Bionic Reading
-  - Scroll down to load more content
-  - Verify the effect is automatically applied to newly loaded content
-
-- [ ] **AJAX Content Test**
-  - Navigate to a site that loads content dynamically (e.g., a single-page application)
-  - Enable Bionic Reading
-  - Interact with the page to load new content
-  - Verify the effect is applied to the newly loaded content
-
-### Error Handling
-
-- [ ] **No Content Error Test**
-  - Navigate to a page with minimal text content (e.g., a login page)
-  - Enable Bionic Reading
-  - Verify an appropriate error message is displayed in the popup
-
-- [ ] **Complex Page Error Test**
-  - Navigate to a complex page with unusual structure
-  - Enable Bionic Reading
-  - If the extension fails to apply the effect, verify an error message is displayed
-
-## Performance Testing
-
-- [ ] **Page Load Test**
-  - Navigate to a content-heavy page
-  - Enable Bionic Reading
-  - Verify the page remains responsive
-  - Verify there is no significant delay in applying the effect
-
-- [ ] **Scrolling Performance Test**
-  - Navigate to a long article or infinite scrolling page
-  - Enable Bionic Reading
-  - Scroll up and down rapidly
-  - Verify scrolling remains smooth
-
-## Cross-Browser Testing
-
-- [ ] **Chrome Test**
-  - Perform basic functionality tests in Chrome
-  - Verify all features work as expected
-
-- [ ] **Edge Test**
-  - Load the extension in Microsoft Edge
-  - Perform basic functionality tests
-  - Verify all features work as expected
-
-- [ ] **Other Chromium Browsers Test** (Optional)
-  - Load the extension in other Chromium-based browsers (e.g., Brave, Opera)
-  - Verify basic functionality
-
-## Reporting Issues
-
-When reporting issues, please include:
-
-1. The specific test that failed
-2. The browser and version used
-3. The website where the issue occurred
-4. A description of the expected vs. actual behavior
-5. Screenshots if applicable
-
-## Final Checklist
-
-Before packaging for distribution:
-
-- [ ] All functional tests pass
-- [ ] Performance is acceptable on various websites
-- [ ] Error handling works correctly
-- [ ] Icons display correctly in all states
-- [ ] Popup UI is functional and visually correct
-- [ ] Keyboard shortcut works consistently 
+- [ ] Switch tabs and windows; the toolbar icon reflects each tab's active/inactive state correctly.
+- [ ] Re-toggle a few times on the same page; no duplicated bolding, no drift, restore is still clean.
