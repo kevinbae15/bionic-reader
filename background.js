@@ -56,10 +56,6 @@ function refreshIconFromTab(tabId) {
   });
 }
 
-function isHttpUrl(url) {
-  return typeof url === 'string' && /^https?:\/\//i.test(url);
-}
-
 // --- Keyboard command: toggle Bionic Reading on the active tab -------------
 
 function injectThenToggle(tabId) {
@@ -135,10 +131,11 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   refreshIconFromTab(tabId);
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status !== 'complete') return;
-  if (!isHttpUrl(tab && tab.url)) return;
-  // Best-effort only — do NOT auto-inject here (that was the double-injection bug).
+  // No URL gate — that would need the `tabs` permission to read tab.url.
+  // refreshIconFromTab just no-ops on tabs without a content script, and we
+  // never auto-inject here (that was the double-injection bug).
   refreshIconFromTab(tabId);
 });
 
